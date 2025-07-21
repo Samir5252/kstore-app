@@ -1,17 +1,17 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ▼▼▼ REEMPLAZA ESTO con la URL base de tu API web existente ▼▼▼
-const BASE_URL = 'https://api.tu-pagina-web.com'; 
+// URL base de tu API (sin /api al final)
+const BASE_URL = 'http://192.168.100.18:5000'; 
 
-const apiClient = axios.create({
+const client = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-apiClient.interceptors.request.use(
+client.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('userToken');
     if (token) {
@@ -24,4 +24,4 @@ apiClient.interceptors.request.use(
   }
 );
 
-export default apiClient;
+export default client;
