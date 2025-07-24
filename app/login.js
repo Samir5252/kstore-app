@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, SafeAreaView, StatusBar, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
-import { loginUser } from '../api/userService'; 
+import { loginUser } from '@/api/userService'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
+// Icono de Google usando react-native-svg
 const GoogleIcon = () => (
   <Svg width="20" height="20" viewBox="0 0 20 20" fill="none">
     <Path d="M19.53 10.22C19.53 9.53 19.47 8.87 19.35 8.24H10V11.9H15.45C15.22 13.23 14.48 14.37 13.37 15.14V17.58H16.58C18.49 15.82 19.53 13.22 19.53 10.22Z" fill="#4285F4"/>
@@ -16,6 +17,7 @@ const GoogleIcon = () => (
   </Svg>
 );
 
+// Icono para mostrar/ocultar contraseña
 const EyeIcon = ({ isVisible }) => (
     <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <Path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -24,7 +26,7 @@ const EyeIcon = ({ isVisible }) => (
     </Svg>
 );
 
-
+// Componente de Input de Contraseña con el icono
 const PasswordInput = ({ value, onChangeText, onSubmitEditing }) => {
     const [isPasswordSecure, setIsPasswordSecure] = useState(true);
     const [isFocused, setIsFocused] = useState(false);
@@ -69,7 +71,6 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-
         const response = await loginUser({
             email,
             password,
@@ -98,7 +99,6 @@ export default function LoginScreen() {
           <StatusBar barStyle="dark-content" />
           
           <View style={styles.logoContainer}>
-            {/* Aquí puedes poner tu componente de Logo o una Imagen */}
             <View style={styles.logoPlaceholder}>
               <Text style={styles.logoText}>LOGO</Text>
             </View>
@@ -134,21 +134,25 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </>
             )}
+          </View>
 
-            {!isPasswordVisible && (
-              <View style={styles.footer}>
-                  <View style={styles.separatorContainer}>
-                      <View style={styles.separatorLine} />
-                      <Text style={styles.separatorText}>o</Text>
-                      <View style={styles.separatorLine} />
-                  </View>
-
-                  <TouchableOpacity style={styles.googleButton}>
-                      <GoogleIcon />
-                      <Text style={styles.googleButtonText}>Iniciar sesión con Google</Text>
-                  </TouchableOpacity>
+          {/* El footer ahora siempre es visible */}
+          <View style={styles.footer}>
+              {/* ▼▼▼ BOTÓN AÑADIDO ▼▼▼ */}
+              <TouchableOpacity style={styles.createAccountButton} onPress={() => router.push('/register')}>
+                  <Text style={styles.createAccountButtonText}>Crear cuenta</Text>
+              </TouchableOpacity>
+              
+              <View style={styles.separatorContainer}>
+                  <View style={styles.separatorLine} />
+                  <Text style={styles.separatorText}>o</Text>
+                  <View style={styles.separatorLine} />
               </View>
-            )}
+
+              <TouchableOpacity style={styles.googleButton}>
+                  <GoogleIcon />
+                  <Text style={styles.googleButtonText}>Iniciar sesión con Google</Text>
+              </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -200,7 +204,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderColor: '#BDBDBD', 
+    borderColor: '#BDBDBD',
     borderWidth: 1.5,
     borderRadius: 8,
     paddingHorizontal: 15,
@@ -208,12 +212,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputFocused: {
-    borderColor: '#C3B1E1', 
+    borderColor: '#C3B1E1',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#BDBDBD', 
+    borderColor: '#BDBDBD',
     borderWidth: 1.5,
     borderRadius: 8,
     marginBottom: 20,
@@ -239,6 +243,19 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  footer: {
+    width: '100%',
+    marginTop: 20, // Añadido para dar espacio
+  },
+  createAccountButton: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  createAccountButtonText: {
+    color: '#3466f6',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -270,9 +287,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-  },
-  footer: {
-    width: '100%',
   },
   forgotPasswordText: {
       color: '#3466f6',

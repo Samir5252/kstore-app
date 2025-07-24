@@ -9,6 +9,9 @@ export default function RootLayout() {
       <Stack.Screen name="index" options={{ title: 'Bienvenido' }} />
       {/* login */}
       <Stack.Screen name="login" options={{ title: 'Iniciar Sesión' }} />
+      {/*register*/}
+      <Stack.Screen name="register" options={{ title: 'Crear Cuenta' }} />
+
     </Stack>
   );
 }
