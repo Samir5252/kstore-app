@@ -1,7 +1,7 @@
 import client from './client';
 
-// La función ahora acepta un número de página
-export const getAllProducts = (page = 1) => {
-  // Pasamos el número de página como un parámetro en la URL
-  return client.get(`/api/products?page=${page}`);
+// La función ahora acepta un objeto con todos los posibles parámetros
+export const getProducts = (params) => {
+  // params puede ser { page: 1, category: 'all', price: '500', search: 'bts' }
+  return client.get('/api/products', { params });
 };
