@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TextInput, SafeAreaView, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+// ▼▼▼ 1. IMPORTA EL COMPONENTE 'Link' ▼▼▼
+import { useFocusEffect, Link } from 'expo-router';
 import { getProducts } from '@/api/productService';
 import { getAllCategories } from '@/api/categoryService'; // Importamos el nuevo servicio
 import Svg, { Path } from 'react-native-svg';
@@ -170,13 +171,16 @@ export default function HomeScreen() {
           numColumns={2}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.productCard}>
-              <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
-              <View style={styles.productInfo}>
-                <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
-                <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
-              </View>
-            </TouchableOpacity>
+            // ▼▼▼ 2. REEMPLAZA TouchableOpacity CON Link ▼▼▼
+            <Link href={`/product/${item._id}`} asChild>
+              <TouchableOpacity style={styles.productCard}>
+                <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
+                </View>
+              </TouchableOpacity>
+            </Link>
           )}
           contentContainerStyle={styles.listContent}
           ListFooterComponent={renderFooter}

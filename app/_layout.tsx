@@ -12,6 +12,8 @@ export default function RootLayout() {
       {/*register*/}
       <Stack.Screen name="register" options={{ title: 'Crear Cuenta' }} />
 
+      <Stack.Screen name="product/[id]" options={{ title: 'Detalles' }} />
+
     </Stack>
   );
 }
