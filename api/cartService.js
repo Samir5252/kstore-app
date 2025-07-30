@@ -10,7 +10,7 @@ const getUserIdFromToken = async () => {
         // Decodificamos la parte del medio (payload) del token
         const payload = JSON.parse(atob(token.split('.')[1]));
         return payload.id; // Asumimos que el ID está en el campo 'id'
-    } catch (error) {
+    } catch (error)        {
         console.error("Error al decodificar el token:", error);
         return null;
     }
@@ -35,4 +35,11 @@ export const removeItemFromCart = async (itemId) => {
     const userId = await getUserIdFromToken();
     if (!userId) throw new Error("Usuario no autenticado");
     return client.delete(`/api/cart/${userId}/item/${itemId}`);
+};
+
+// Actualizar la cantidad de un ítem en el carrito
+export const updateCartItemQuantity = async (itemId, quantity) => {
+    const userId = await getUserIdFromToken();
+    if (!userId) throw new Error("Usuario no autenticado");
+    return client.put(`/api/cart/${userId}/item/${itemId}`, { quantity });
 };
