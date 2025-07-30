@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Image, ScrollView, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { getProductById } from '@/api/productService';
-import { addItemToCart } from '@/api/cartService'; // Importamos la función del carrito
+import { addItemToCart } from '@/api/cartService';
+import { useCart } from '@/context/CartContext'; // 1. Importa el hook del carrito
 import Svg, { Path } from 'react-native-svg';
 
-// --- Iconos y Alerta Personalizada ---
+// --- Iconos y Alerta Personalizada (código existente) ---
 const PlusIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 5v14M5 12h14"></Path></Svg>;
 const MinusIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M5 12h14"></Path></Svg>;
 const CartIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></Path><Path d="M3 6h18"></Path><Path d="M16 10a4 4 0 0 1-8 0"></Path></Svg>;
@@ -34,6 +35,7 @@ export default function ProductDetailScreen() {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [alert, setAlert] = useState({ visible: false, message: '', type: '' });
+    const { fetchCart } = useCart(); // 2. Obtiene la función para refrescar el carrito
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -55,9 +57,9 @@ export default function ProductDetailScreen() {
 
     const handleAddToCart = async () => {
         try {
-            // ▼▼▼ LÓGICA DE AÑADIR AL CARRITO ACTUALIZADA ▼▼▼
             await addItemToCart(product._id, quantity);
             showAlert(`${quantity} x ${product.name} agregado(s) al carrito.`, 'success');
+            fetchCart(); // 3. Llama a la función para actualizar el contador del carrito
         } catch (error) {
             console.error("Error al añadir al carrito:", error);
             showAlert(error.message || "No se pudo agregar el producto.");

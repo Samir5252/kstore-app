@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, Image, TouchableOpacity, ActivityIndicator,Platform,StatusBar } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { getCart, removeItemFromCart } from '@/api/cartService';
+import { useCart } from '@/context/CartContext'; // 1. Importa el hook
 import Svg, { Path } from 'react-native-svg';
 
 const TrashIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F44336" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></Path></Svg>;
@@ -9,8 +10,9 @@ const TrashIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="no
 export default function CartScreen() {
     const [cart, setCart] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { fetchCart: updateCartBadge } = useCart(); // 2. Obtiene la función y le da un alias
 
-    const fetchCart = useCallback(async () => {
+    const fetchCartData = useCallback(async () => {
         try {
             const { data } = await getCart();
             setCart(data);
@@ -21,18 +23,18 @@ export default function CartScreen() {
         }
     }, []);
 
-    // useFocusEffect para que el carrito se actualice cada vez que entras a la pestaña
     useFocusEffect(
         useCallback(() => {
             setLoading(true);
-            fetchCart();
+            fetchCartData();
         }, [])
     );
 
     const handleRemoveItem = async (itemId) => {
         try {
             const { data } = await removeItemFromCart(itemId);
-            setCart(data); // Actualizamos el estado del carrito con la respuesta
+            setCart(data);
+            updateCartBadge(); // 3. Llama a la función para actualizar el contador
         } catch (error) {
             console.error("Error al eliminar el ítem:", error);
         }
@@ -89,7 +91,11 @@ export default function CartScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#F7F8FA' },
+    safeArea: { 
+        flex: 1, 
+        backgroundColor: '#F7F8FA',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+    },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyText: { fontSize: 18, color: '#666' },
     header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },

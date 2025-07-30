@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TextInput, SafeAreaView, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TextInput, SafeAreaView, ActivityIndicator, TouchableOpacity, Modal, ScrollView, Platform, StatusBar } from 'react-native';
 // ▼▼▼ 1. IMPORTA EL COMPONENTE 'Link' ▼▼▼
 import { useFocusEffect, Link } from 'expo-router';
 import { getProducts } from '@/api/productService';
@@ -196,7 +196,11 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
+  safeArea: { 
+        flex: 1, 
+        backgroundColor: '#faf7faff',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+    },
   container: { flex: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { color: 'red' },

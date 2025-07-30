@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, } from 'react';
 import { 
     View, Text, StyleSheet, SafeAreaView, TouchableOpacity, 
     ActivityIndicator, Modal, TextInput, 
-    LayoutAnimation, Platform, UIManager, Animated
+    LayoutAnimation, Platform, StatusBar, UIManager, Animated
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getCurrentUser, updateUser } from '@/api/userService';
@@ -203,7 +203,11 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F7F8FA' },
+  safeArea: { 
+        flex: 1, 
+        backgroundColor: '#F7F8FA',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+    },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, padding: 20 },
   header: { marginBottom: 30 },
