@@ -1,19 +1,17 @@
 import { Stack } from 'expo-router';
+import { CartProvider } from '@/context/CartContext'; // 1. Importa el Provider
 
 export default function RootLayout() {
   return (
-    // Stack es el tipo de navegador más común.
-    // Te permite "apilar" pantallas una encima de otra y volver atrás.
-    <Stack>
-      {/* Cada Stack.Screen es una pantalla en tu navegador */}
-      <Stack.Screen name="index" options={{ title: 'Bienvenido' }} />
-      {/* login */}
-      <Stack.Screen name="login" options={{ title: 'Iniciar Sesión' }} />
-      {/*register*/}
-      <Stack.Screen name="register" options={{ title: 'Crear Cuenta' }} />
-
-      <Stack.Screen name="product/[id]" options={{ title: 'Detalles' }} />
-
-    </Stack>
+    // 2. Envuelve toda la aplicación con el CartProvider
+    <CartProvider>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ title:'K-Store' }} />
+        <Stack.Screen name="register" options={{ title: 'Se Parte de nuestra familia' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="product/[id]" options={{ title: 'Detalles' }} />
+      </Stack>
+    </CartProvider>
   );
 }
