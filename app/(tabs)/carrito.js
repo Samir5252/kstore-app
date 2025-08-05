@@ -83,7 +83,10 @@ export default function CartScreen() {
                     <View style={styles.cartItem}>
                         <Link href={`/product/${item.product._id}`} asChild>
                             <TouchableOpacity>
-                                <Image source={{ uri: item.product.imageUrl }} style={styles.productImage} />
+
+                                <Image source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.product.imageUrl}` }} 
+                                        style={styles.productImage} />
+                                        
                             </TouchableOpacity>
                         </Link>
                         <View style={styles.itemDetails}>

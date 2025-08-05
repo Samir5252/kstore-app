@@ -55,7 +55,7 @@ const ProductCard = ({ item, onAddToCart }) => {
     return (
         <Link href={`/product/${item._id}`} asChild>
             <TouchableOpacity style={styles.productCard}>
-                <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
+                <Image source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.imageUrl}` }} style={styles.productImage}/>
                 {hasDiscount && (<View style={styles.discountBadge}><Text style={styles.discountText}>-{item.discountPercentage}%</Text></View>)}
                 <View style={styles.productInfo}>
                     <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
