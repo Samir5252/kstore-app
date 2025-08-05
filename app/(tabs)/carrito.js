@@ -1,10 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, Image, TouchableOpacity, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { useFocusEffect, Link } from 'expo-router';
 import { getCart, removeItemFromCart, updateCartItemQuantity } from '@/api/cartService';
 import { useCart } from '@/context/CartContext';
 import Svg, { Path } from 'react-native-svg';
-import { LinearGradient } from 'expo-linear-gradient'; // Importamos para el degradado
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TrashIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F44336" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></Path></Svg>;
 const PlusIcon = ({ color = '#333' }) => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 5v14M5 12h14"></Path></Svg>;
@@ -27,6 +27,13 @@ export default function CartScreen() {
     }, []);
 
     useFocusEffect(useCallback(() => { setLoading(true); fetchCartData(); }, []));
+
+    // ▼▼▼ FILTRO PARA ÍTEMS VÁLIDOS ▼▼▼
+    const validCartItems = useMemo(() => {
+        if (!cart || !cart.items) return [];
+        // Filtramos la lista para incluir solo los ítems donde 'item.product' no sea null.
+        return cart.items.filter(item => item.product);
+    }, [cart]);
 
     const handleUpdateQuantity = async (itemId, newQuantity) => {
         const originalCart = cart;
@@ -62,7 +69,7 @@ export default function CartScreen() {
         return <View style={styles.centered}><ActivityIndicator size="large" /></View>;
     }
 
-    if (!cart || cart.items.length === 0) {
+    if (!cart || validCartItems.length === 0) {
         return (
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.centered}>
@@ -77,16 +84,17 @@ export default function CartScreen() {
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}><Text style={styles.headerTitle}>Mi Carrito</Text></View>
             <FlatList
-                data={cart.items}
+                // ▼▼▼ USAMOS LA LISTA FILTRADA ▼▼▼
+                data={validCartItems}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
                     <View style={styles.cartItem}>
                         <Link href={`/product/${item.product._id}`} asChild>
                             <TouchableOpacity>
-
-                                <Image source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.product.imageUrl}` }} 
-                                        style={styles.productImage} />
-                                        
+                                <Image 
+                                    source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.product.imageUrl}` }} 
+                                    style={styles.productImage} 
+                                />
                             </TouchableOpacity>
                         </Link>
                         <View style={styles.itemDetails}>

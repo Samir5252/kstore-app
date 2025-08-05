@@ -30,3 +30,8 @@ export const updateUser = (updateData) => {
   return client.put('/api/users/me', updateData);
 };
 
+
+export const googleLogin = (idToken) => {
+  return client.post('/api/users/google-login', { idToken });
+};
+

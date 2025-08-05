@@ -1,20 +1,27 @@
 import client from './client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { decode as atob } from 'base-64'; // Necesario para decodificar el token JWT
+import { decode as atob } from 'base-64';
 
 // Helper para obtener el userId del token JWT
 const getUserIdFromToken = async () => {
     try {
         const token = await AsyncStorage.getItem('userToken');
         if (!token) return null;
-        // Decodificamos la parte del medio (payload) del token
+        
         const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.id; // Asumimos que el ID está en el campo 'id'
-    } catch (error)        {
+
+        // ▼▼▼ CORRECCIÓN IMPORTANTE AQUÍ ▼▼▼
+        // Ahora buscamos el ID dentro del objeto 'user' anidado,
+        // tal como lo genera tu nuevo controlador.
+        return payload.user.id; 
+
+    } catch (error) {
         console.error("Error al decodificar el token:", error);
         return null;
     }
 };
+
+// --- El resto de las funciones no necesitan cambios ---
 
 // Obtener el carrito del usuario logueado
 export const getCart = async () => {

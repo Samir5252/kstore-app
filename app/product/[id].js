@@ -35,12 +35,29 @@ const CustomAlert = ({ visible, message, type, onHide }) => {
     return (<Animated.View style={[styles.alertContainer, { opacity: fadeAnim, backgroundColor }]}><Icon /><Text style={styles.alertText}>{message}</Text></Animated.View>);
 };
 
-const DetailRow = ({ label, value }) => (
-    <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
-    </View>
-);
+// ▼▼▼ COMPONENTE DetailRow CORREGIDO Y MÁS ROBUSTO ▼▼▼
+const DetailRow = ({ label, value }) => {
+    const renderValue = () => {
+        // Si el valor ya es un componente (como el texto de color), lo renderizamos directamente.
+        if (React.isValidElement(value)) {
+            return value;
+        }
+        // Si el valor es un objeto (lo que causa el error), no lo renderizamos para evitar el crash.
+        if (typeof value === 'object' && value !== null) {
+            console.warn(`Se intentó renderizar un objeto en DetailRow para la etiqueta: ${label}`);
+            return <Text style={styles.detailValue}>Dato no disponible</Text>;
+        }
+        // Si es texto o número, lo renderizamos normalmente.
+        return <Text style={styles.detailValue}>{value}</Text>;
+    };
+
+    return (
+        <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>{label}</Text>
+            {renderValue()}
+        </View>
+    );
+};
 
 export default function ProductDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -115,7 +132,6 @@ export default function ProductDetailScreen() {
                 </View>
                 
                 <View style={styles.detailsCard}>
-                    <Text style={styles.artistText}>{product.artist || 'Artista Desconocido'}</Text>
                     <Text style={styles.productName}>{product.name}</Text>
                     <View style={styles.priceContainer}>
                         <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
@@ -135,9 +151,13 @@ export default function ProductDetailScreen() {
 
                     {detailsExpanded && (
                         <View>
+                            <DetailRow label="Artista" value={product.artist || 'N/A'} />
                             <DetailRow label="Categoría" value={product.category?.name || 'N/A'} />
                             <DetailRow label="SKU" value={product.sku || 'N/A'} />
-                            <DetailRow label="Disponibles" value={<Text style={{ color: stockColor, fontWeight: 'bold' }}>{product.stock}</Text>} />
+                            <DetailRow 
+                                label="Disponibles" 
+                                value={<Text style={{ color: stockColor, fontWeight: 'bold' }}>{product.stock}</Text>} 
+                            />
                         </View>
                     )}
                 </View>
@@ -206,7 +226,7 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     preorderBadge: {
-        backgroundColor: '#8E44AD', // Un lila más oscuro para preventa
+        backgroundColor: '#8E44AD',
         left: 'auto',
         right: 20,
     },
@@ -222,7 +242,6 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 5,
     },
-    artistText: { fontSize: 16, color: '#888', marginBottom: 4 },
     productName: { fontSize: 26, fontWeight: 'bold', marginBottom: 8 },
     priceContainer: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 20 },
     productPrice: { fontSize: 28, fontWeight: 'bold', color: '#333' },
@@ -270,13 +289,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 15,
-        backgroundColor: '#8E44AD', // Lila más oscuro
+        backgroundColor: '#8E44AD',
         borderRadius: 30,
     },
     notAvailableText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: 'white', // Texto blanco para contraste
+        color: 'white',
     },
 
     alertContainer: { position: 'absolute', top: 50, left: 20, right: 20, padding: 15, borderRadius: 10, flexDirection: 'row', alignItems: 'center', zIndex: 1000, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },

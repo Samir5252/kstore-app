@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, LayoutAnimation, UIManager, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
-import { loginUser } from '@/api/userService'; 
+import { loginUser, googleLogin } from '@/api/userService'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+
+// Esto es necesario para que el flujo de autenticación de Google funcione correctamente en Expo Go.
+WebBrowser.maybeCompleteAuthSession();
 
 // Habilitar LayoutAnimation para Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -44,9 +49,37 @@ export default function LoginScreen() {
   const fadeAnim = useState(new Animated.Value(0))[0];
   const router = useRouter();
 
+  // --- Lógica de Google Sign-In ---
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    expoClientId: '19800360417-22kkjoacj6iul1cqq5lq5ruhk7fs011m.apps.googleusercontent.com',
+    iosClientId: 'TU_IOS_CLIENT_ID.apps.googleusercontent.com',
+    androidClientId: 'TU_ANDROID_CLIENT_ID.apps.googleusercontent.com',
+  });
+
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
   }, []);
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { id_token } = response.params;
+      handleGoogleSignIn(id_token);
+    }
+  }, [response]);
+
+  const handleGoogleSignIn = async (idToken) => {
+    setIsLoading(true);
+    try {
+        const { data } = await googleLogin(idToken);
+        await AsyncStorage.setItem('userToken', data.token);
+        router.replace('/(tabs)');
+    } catch (error) {
+        console.error("Error en el inicio de sesión con Google:", error.response?.data || error.message);
+        showAlert('No se pudo iniciar sesión con Google.');
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
   const handleEmailChange = (text) => {
     setEmail(text);
@@ -129,7 +162,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={styles.linksContainer}>
-                {/* ▼▼▼ CORRECCIÓN AÑADIDA AQUÍ ▼▼▼ */}
                 <TouchableOpacity style={{ marginBottom: 15 }} onPress={() => router.push('/register')}>
                     <Text style={styles.linkText}>Crear cuenta</Text>
                 </TouchableOpacity>
@@ -144,7 +176,11 @@ export default function LoginScreen() {
               <View style={styles.separatorLine} />
             </View>
 
-            <TouchableOpacity style={styles.googleButton}>
+            <TouchableOpacity 
+              style={styles.googleButton} 
+              disabled={!request || isLoading}
+              onPress={() => promptAsync()}
+            >
               <GoogleIcon />
               <Text style={styles.googleButtonText}>Continuar con Google</Text>
             </TouchableOpacity>
