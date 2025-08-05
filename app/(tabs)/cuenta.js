@@ -8,6 +8,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { getCurrentUser, updateUser } from '@/api/userService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Habilitar LayoutAnimation para Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -159,8 +160,14 @@ export default function AccountScreen() {
         <View style={styles.modalContent}>
           {modalContent === 'name' && (<><Text style={styles.modalTitle}>Cambiar Nombre</Text><TextInput style={styles.input} value={newName} onChangeText={setNewName} placeholder="Nuevo nombre" /></>)}
           {modalContent === 'email' && (<><Text style={styles.modalTitle}>Cambiar Email</Text><TextInput style={styles.input} value={newEmail} onChangeText={setNewEmail} placeholder="Nuevo email" keyboardType="email-address" /><TextInput style={styles.input} value={currentPassword} onChangeText={setCurrentPassword} placeholder="Contraseña actual" secureTextEntry /></>)}
-          <TouchableOpacity style={styles.modalButton} onPress={handleUpdate}><Text style={styles.modalButtonText}>Guardar Cambios</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={() => setModalVisible(false)}><Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancelar</Text></TouchableOpacity>
+          <TouchableOpacity onPress={handleUpdate}>
+              <LinearGradient colors={['#D0B3E5', '#C3B1E1']} style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Guardar Cambios</Text>
+              </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={() => setModalVisible(false)}>
+              <Text style={[styles.modalButtonText, styles.modalButtonTextCancel]}>Cancelar</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -204,10 +211,10 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { 
-        flex: 1, 
-        backgroundColor: '#F7F8FA',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
-    },
+    flex: 1, 
+    backgroundColor: '#F7F8FA',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+  },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1, padding: 20 },
   header: { marginBottom: 30 },
@@ -224,10 +231,10 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
   infoLabel: { fontSize: 14, color: '#666', width: '25%' },
   infoValue: { fontSize: 14, flex: 1 },
-  changeButton: { color: '#007AFF', fontWeight: 'bold' },
+  changeButton: { color: '#C3B1E1', fontWeight: 'bold' },
   placeholderText: { color: '#888', fontStyle: 'italic' },
   
-  logoutButton: { flexDirection: 'row', backgroundColor: '#D9534F', padding: 15, borderRadius: 30, alignItems: 'center', justifyContent: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3.84, elevation: 5 },
+  logoutButton: { flexDirection: 'row', backgroundColor: '#FF6B6B', padding: 15, borderRadius: 30, alignItems: 'center', justifyContent: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3.84, elevation: 5 },
   logoutButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16, marginLeft: 10 },
   
   // Modal Styles
@@ -235,10 +242,10 @@ const styles = StyleSheet.create({
   modalContent: { width: '90%', backgroundColor: 'white', borderRadius: 20, padding: 25, elevation: 5 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   input: { borderWidth: 1, borderColor: '#CCC', padding: 12, borderRadius: 8, marginBottom: 15, fontSize: 16 },
-  modalButton: { backgroundColor: '#007AFF', padding: 15, borderRadius: 8, alignItems: 'center' },
+  modalButton: { padding: 15, borderRadius: 8, alignItems: 'center' },
   modalButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  modalButtonCancel: { backgroundColor: '#EFEFF4', marginTop: 10 },
-  modalButtonTextCancel: { color: '#007AFF' },
+  modalButtonCancel: { backgroundColor: '#F5F5F5', marginTop: 10 },
+  modalButtonTextCancel: { color: '#FF6B6B', fontWeight: 'bold' },
 
   // Alert (Toast) Styles
   alertContainer: { position: 'absolute', top: 50, left: 20, right: 20, padding: 15, borderRadius: 10, flexDirection: 'row', alignItems: 'center', zIndex: 1000 },
