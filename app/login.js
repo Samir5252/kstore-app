@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
 
 // Esto es necesario para que el flujo de autenticación de Google funcione correctamente en Expo Go.
 WebBrowser.maybeCompleteAuthSession();
@@ -44,17 +45,50 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordSecure, setIsPasswordSecure] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState({ visible: false, message: '', type: '' });
+  const [isGoogleAvailable, setIsGoogleAvailable] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const router = useRouter();
 
-  // --- Lógica de Google Sign-In ---
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    expoClientId: '19800360417-22kkjoacj6iul1cqq5lq5ruhk7fs011m.apps.googleusercontent.com',
-    iosClientId: 'TU_IOS_CLIENT_ID.apps.googleusercontent.com',
-    androidClientId: 'TU_ANDROID_CLIENT_ID.apps.googleusercontent.com',
-  });
+  // --- Configuración mejorada de Google Sign-In ---
+  // Verificar si estamos en Expo Go
+  const isExpoGo = Constants.appOwnership === 'expo';
+  
+  // ⚠️ SOLO PARA PRUEBAS - Reemplaza con tus credenciales reales
+  const GOOGLE_WEB_CLIENT_ID = "19800360417-22kkjoacj6iul1cqq5ledasruhk7fs011m.apps.googleusercontent.com";
+  const GOOGLE_ANDROID_CLIENT_ID = "19800360417-odlbo847sasasaskd3tiu0uqmvhncu4.apps.googleusercontent.com";
+  
+  // Configuración de Google Auth - SIEMPRE definir androidClientId para evitar el error
+  const googleConfig = {
+    expoClientId: GOOGLE_WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    // iOS (opcional)
+    // iosClientId: "TU_CLIENT_ID_IOS.apps.googleusercontent.com",
+  };
+
+  // Los hooks DEBEN ejecutarse siempre, no pueden estar en try-catch
+  let request, response, promptAsync;
+  
+  try {
+    [request, response, promptAsync] = Google.useIdTokenAuthRequest(googleConfig);
+  } catch (error) {
+    console.error('Error inicializando Google Auth:', error);
+    request = null;
+    response = null;
+    promptAsync = null;
+  }
+
+  // Verificar disponibilidad después del hook
+  useEffect(() => {
+    if (request && GOOGLE_WEB_CLIENT_ID && GOOGLE_ANDROID_CLIENT_ID) {
+      setIsGoogleAvailable(true);
+    } else {
+      setIsGoogleAvailable(false);
+      console.warn('Google Auth no disponible - verifique credenciales');
+    }
+  }, [request]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }).start();
@@ -64,6 +98,9 @@ export default function LoginScreen() {
     if (response?.type === 'success') {
       const { id_token } = response.params;
       handleGoogleSignIn(id_token);
+    } else if (response?.type === 'error') {
+      console.error('Error en Google Auth:', response.error);
+      showAlert('Error al iniciar sesión con Google');
     }
   }, [response]);
 
@@ -72,7 +109,10 @@ export default function LoginScreen() {
     try {
         const { data } = await googleLogin(idToken);
         await AsyncStorage.setItem('userToken', data.token);
-        router.replace('/(tabs)');
+        showAlert('¡Inicio de sesión exitoso!', 'success');
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 1500);
     } catch (error) {
         console.error("Error en el inicio de sesión con Google:", error.response?.data || error.message);
         showAlert('No se pudo iniciar sesión con Google.');
@@ -101,12 +141,33 @@ export default function LoginScreen() {
       const response = await loginUser({ email, password });
       const { token } = response.data;
       await AsyncStorage.setItem('userToken', token);
-      router.replace('/(tabs)');
+      showAlert('¡Inicio de sesión exitoso!', 'success');
+      setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 1500);
     } catch (error) {
       console.error("Error en el inicio de sesión:", error.response?.data || error.message);
       showAlert(error.response?.data?.message || 'Credenciales incorrectas.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGooglePress = () => {
+    if (!isGoogleAvailable || !request || !promptAsync) {
+      if (isExpoGo) {
+        showAlert('Google Auth requiere credenciales de Android. Verifica tu configuración.');
+      } else {
+        showAlert('Google Auth no está disponible en este momento.');
+      }
+      return;
+    }
+    
+    try {
+      promptAsync();
+    } catch (error) {
+      console.error('Error al ejecutar Google Auth:', error);
+      showAlert('Error al inicializar Google Auth');
     }
   };
 
@@ -148,15 +209,18 @@ export default function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                     placeholder="Contraseña"
-                    secureTextEntry
+                    secureTextEntry={isPasswordSecure}
                     onSubmitEditing={handleLogin}
                   />
+                  <TouchableOpacity onPress={() => setIsPasswordSecure(!isPasswordSecure)} style={styles.eyeIcon}>
+                    <EyeIcon isVisible={isPasswordSecure} />
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
 
-            <TouchableOpacity onPress={handleLogin} disabled={isLoading}>
-              <LinearGradient colors={['#D0B3E5', '#C3B1E1']} style={styles.loginButton}>
+            <TouchableOpacity onPress={handleLogin} disabled={isLoading || !isPasswordVisible}>
+              <LinearGradient colors={isPasswordVisible ? ['#D0B3E5', '#C3B1E1'] : ['#E0E0E0', '#D1D1D1']} style={styles.loginButton}>
                 {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.loginButtonText}>Iniciar Sesión</Text>}
               </LinearGradient>
             </TouchableOpacity>
@@ -177,13 +241,30 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity 
-              style={styles.googleButton} 
-              disabled={!request || isLoading}
-              onPress={() => promptAsync()}
+              style={[
+                styles.googleButton, 
+                (!isGoogleAvailable || isLoading) && styles.googleButtonDisabled
+              ]} 
+              disabled={isLoading}
+              onPress={handleGooglePress}
             >
               <GoogleIcon />
-              <Text style={styles.googleButtonText}>Continuar con Google</Text>
+              <Text style={[
+                styles.googleButtonText,
+                (!isGoogleAvailable || isLoading) && styles.googleButtonTextDisabled
+              ]}>
+                {isExpoGo && !isGoogleAvailable 
+                  ? 'Google (No disponible en Expo Go)' 
+                  : 'Continuar con Google'
+                }
+              </Text>
             </TouchableOpacity>
+
+            {isExpoGo && !isGoogleAvailable && (
+              <Text style={styles.warningText}>
+                💡 Para usar Google Auth en Android, necesitas crear credenciales específicas de Android en Google Console
+              </Text>
+            )}
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -216,6 +297,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   inputField: { flex: 1, fontSize: 16, marginLeft: 10 },
+  eyeIcon: { padding: 5 },
   loginButton: { paddingVertical: 15, borderRadius: 30, alignItems: 'center', justifyContent: 'center', height: 55, shadowColor: "#C3B1E1", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 6 },
   loginButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
   linksContainer: { 
@@ -229,6 +311,9 @@ const styles = StyleSheet.create({
   separatorText: { marginHorizontal: 10, color: '#AAA' },
   googleButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#E0E0E0', paddingVertical: 15, borderRadius: 30, height: 55 },
   googleButtonText: { marginLeft: 10, fontSize: 16, fontWeight: '600', color: '#333' },
+  googleButtonDisabled: { backgroundColor: '#F5F5F5', borderColor: '#D0D0D0' },
+  googleButtonTextDisabled: { color: '#999' },
   alertContainer: { position: 'absolute', top: 60, left: 20, right: 20, padding: 15, borderRadius: 10, flexDirection: 'row', alignItems: 'center', zIndex: 1000, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
   alertText: { color: 'white', fontWeight: 'bold', marginLeft: 10, fontSize: 16 },
+  warningText: { textAlign: 'center', fontSize: 12, color: '#666', marginTop: 10, fontStyle: 'italic' },
 });

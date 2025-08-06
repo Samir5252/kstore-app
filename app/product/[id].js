@@ -151,7 +151,7 @@ export default function ProductDetailScreen() {
 
                     {detailsExpanded && (
                         <View>
-                            <DetailRow label="Artista" value={product.artist || 'N/A'} />
+                            <DetailRow label="Artista" value={product.artist?.name || 'N/A'} />
                             <DetailRow label="Categoría" value={product.category?.name || 'N/A'} />
                             <DetailRow label="SKU" value={product.sku || 'N/A'} />
                             <DetailRow 
