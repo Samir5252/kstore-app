@@ -60,10 +60,11 @@ export default function LoginScreen() {
   const GOOGLE_WEB_CLIENT_ID = "19800360417-22kkjoacj6iul1cqq5ledasruhk7fs011m.apps.googleusercontent.com";
   const GOOGLE_ANDROID_CLIENT_ID = "19800360417-odlbo847sasasaskd3tiu0uqmvhncu4.apps.googleusercontent.com";
   
-  // Configuración de Google Auth - SIEMPRE definir androidClientId para evitar el error
+  // Configuración de Google Auth - Sin redirectUri personalizado para que use el automático
   const googleConfig = {
     expoClientId: GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    // Dejar que Expo maneje automáticamente el redirectUri
     // iOS (opcional)
     // iosClientId: "TU_CLIENT_ID_IOS.apps.googleusercontent.com",
   };
@@ -84,6 +85,8 @@ export default function LoginScreen() {
   useEffect(() => {
     if (request && GOOGLE_WEB_CLIENT_ID && GOOGLE_ANDROID_CLIENT_ID) {
       setIsGoogleAvailable(true);
+      // Mostrar el redirectUri que se está usando
+      console.log('Google Auth disponible. RedirectUri automático:', request?.redirectUri);
     } else {
       setIsGoogleAvailable(false);
       console.warn('Google Auth no disponible - verifique credenciales');
