@@ -32,7 +32,7 @@ const CustomAlert = ({ visible, message, type, onHide }) => {
 
 const SearchBar = ({ searchQuery, setSearchQuery, onFilterPress }) => (
     <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}><SearchIcon /><TextInput style={styles.searchInput} placeholder="Buscar Álbumes, Light Sticks..." value={searchQuery} onChangeText={setSearchQuery} /></View>
+        <View style={styles.searchInputWrapper}><SearchIcon /><TextInput style={styles.searchInput} placeholder="Buscar Álbumes, Light Sticks..." placeholderTextColor="#888" value={searchQuery} onChangeText={setSearchQuery} /></View>
         <TouchableOpacity style={styles.filterButton} onPress={onFilterPress}><FilterIcon /></TouchableOpacity>
     </View>
 );

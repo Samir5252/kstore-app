@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, LayoutAnimation, UIManager, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
-import { loginUser, googleLogin } from '@/api/userService'; 
+import { loginUser, googleLogin } from '@/api/userService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Google from 'expo-auth-session/providers/google';
@@ -53,23 +53,16 @@ export default function LoginScreen() {
   const router = useRouter();
 
   // --- Configuración mejorada de Google Sign-In ---
-  // Verificar si estamos en Expo Go
   const isExpoGo = Constants.appOwnership === 'expo';
   
-  // ⚠️ SOLO PARA PRUEBAS - Reemplaza con tus credenciales reales
   const GOOGLE_WEB_CLIENT_ID = "19800360417-22kkjoacj6iul1cqq5ledasruhk7fs011m.apps.googleusercontent.com";
   const GOOGLE_ANDROID_CLIENT_ID = "19800360417-odlbo847sasasaskd3tiu0uqmvhncu4.apps.googleusercontent.com";
   
-  // Configuración de Google Auth - Sin redirectUri personalizado para que use el automático
   const googleConfig = {
     expoClientId: GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    // Dejar que Expo maneje automáticamente el redirectUri
-    // iOS (opcional)
-    // iosClientId: "TU_CLIENT_ID_IOS.apps.googleusercontent.com",
   };
 
-  // Los hooks DEBEN ejecutarse siempre, no pueden estar en try-catch
   let request, response, promptAsync;
   
   try {
@@ -81,11 +74,9 @@ export default function LoginScreen() {
     promptAsync = null;
   }
 
-  // Verificar disponibilidad después del hook
   useEffect(() => {
     if (request && GOOGLE_WEB_CLIENT_ID && GOOGLE_ANDROID_CLIENT_ID) {
       setIsGoogleAvailable(true);
-      // Mostrar el redirectUri que se está usando
       console.log('Google Auth disponible. RedirectUri automático:', request?.redirectUri);
     } else {
       setIsGoogleAvailable(false);
@@ -199,6 +190,7 @@ export default function LoginScreen() {
                   value={email}
                   onChangeText={handleEmailChange}
                   placeholder="Email"
+                  placeholderTextColor="#888"
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
@@ -212,6 +204,7 @@ export default function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                     placeholder="Contraseña"
+                    placeholderTextColor="#888"
                     secureTextEntry={isPasswordSecure}
                     onSubmitEditing={handleLogin}
                   />
@@ -299,7 +292,13 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
   },
-  inputField: { flex: 1, fontSize: 16, marginLeft: 10 },
+  // --- 👇 MODIFICACIÓN CLAVE AQUÍ 👇 ---
+  inputField: { 
+    flex: 1, 
+    fontSize: 16, 
+    marginLeft: 10,
+    color: '#000' // Asegura que el texto sea negro
+  },
   eyeIcon: { padding: 5 },
   loginButton: { paddingVertical: 15, borderRadius: 30, alignItems: 'center', justifyContent: 'center', height: 55, shadowColor: "#C3B1E1", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 6 },
   loginButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
