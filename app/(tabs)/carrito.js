@@ -33,7 +33,7 @@ const CustomAlert = ({ visible, message, type, onHide }) => {
             Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
             setTimeout(() => {
                 Animated.timing(fadeAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => onHide());
-            }, 3000);
+            }, 4000); // Aumentado a 4 segundos para errores largos
         }
     }, [visible]);
     if (!visible) return null;
@@ -47,7 +47,6 @@ export default function CartScreen() {
     const router = useRouter();
     const webviewRef = useRef(null);
     const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-
     const [checkoutLoading, setCheckoutLoading] = useState(false);
     const [paypalUrl, setPaypalUrl] = useState(null);
     const [paypalOrderId, setPaypalOrderId] = useState(null);
@@ -70,14 +69,21 @@ export default function CartScreen() {
                 setPaypalOrderId(orderID);
                 const yourHostedPageUrl = `https://harmonious-kitsune-1fe5c0.netlify.app`;
                 const urlParaWebView = `${yourHostedPageUrl}?orderID=${orderID}`;
-                console.log("Cargando WebView con la siguiente URL:", urlParaWebView);
                 setPaypalUrl(urlParaWebView);
             } else {
                 showAlert('El backend no devolvió un ID de orden.', 'error');
             }
         } catch (error) {
-            console.error("Error al iniciar el pago:", error.response?.data || error.message);
-            showAlert('No se pudo iniciar el proceso de pago.', 'error');
+            // --- ✅ MANEJO DEL ERROR DE STOCK ---
+            if (error.response?.data?.unavailableProducts) {
+                const { unavailableProducts } = error.response.data;
+                const productNames = unavailableProducts.map(p => `${p.name} (solo quedan ${p.available})`).join(', ');
+                const errorMessage = `Stock insuficiente para: ${productNames}. Por favor, ajusta tu carrito.`;
+                showAlert(errorMessage, 'error');
+            } else {
+                console.error("Error al iniciar el pago:", error.response?.data || error.message);
+                showAlert('No se pudo iniciar el proceso de pago.', 'error');
+            }
         } finally {
             setCheckoutLoading(false);
         }
@@ -108,6 +114,7 @@ export default function CartScreen() {
                 });
             return false;
         }
+
         if (url.includes('paypal/cancel')) {
             webviewRef.current?.stopLoading();
             setPaypalUrl(null);
@@ -122,7 +129,6 @@ export default function CartScreen() {
             await updateCartItemQuantity(itemId, newQuantity);
             updateCartAndBadge();
         } catch (error) {
-            console.error("Error al actualizar cantidad:", error);
             showAlert("No se pudo actualizar la cantidad.", 'error');
         }
     };
@@ -132,7 +138,6 @@ export default function CartScreen() {
             await removeItemFromCart(itemId);
             updateCartAndBadge();
         } catch (error) {
-            console.error("Error al eliminar el ítem:", error);
             showAlert("No se pudo eliminar el producto.", 'error');
         }
     };
