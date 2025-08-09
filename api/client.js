@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Reemplaza esta URL con la dirección de tu backend.
 // Si pruebas en un dispositivo Android físico, usa la IP de tu computadora.
 // Ejemplo: '     https://backend-production-93c8.up.railway.app   http://192.168.22.34:5000'
-const API_URL = 'https://backend-production-93c8.up.railway.app'; 
+const API_URL = 'http://192.168.22.34:5000'; 
 
 const client = axios.create({
     baseURL: API_URL,

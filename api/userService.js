@@ -11,11 +11,6 @@ export const registerUser = (userData) => {
   return client.post('/api/users/register', userData);
 };
 
-
-// ==================================================================
-// ▼▼▼ FUNCIONES AÑADIDAS ▼▼▼
-// ==================================================================
-
 // Obtiene los datos del usuario actualmente logueado
 export const getCurrentUser = () => {
   // Esta ruta debe existir en tu backend (GET /api/users/me) y estar protegida
@@ -23,15 +18,33 @@ export const getCurrentUser = () => {
 };
 
 // Actualiza los datos del usuario
-// updateData puede ser { name: 'Nuevo Nombre' } o 
-// { newEmail: 'nuevo@email.com', currentPassword: '...' }
 export const updateUser = (updateData) => {
   // Esta ruta debe existir en tu backend (PUT /api/users/me) y estar protegida
   return client.put('/api/users/me', updateData);
 };
 
-
 export const googleLogin = (idToken) => {
   return client.post('/api/users/google-login', { idToken });
 };
 
+// ==================================================================
+// ▼▼▼ FUNCIONES AÑADIDAS PARA RECUPERAR CONTRASEÑA ▼▼▼
+// ==================================================================
+
+/**
+ * Solicita al backend que envíe un código de verificación al correo del usuario.
+ * @param {string} email El correo del usuario.
+ */
+export const forgotPasswordRequest = (email) => {
+  return client.post('/api/users/forgot-password', { email });
+};
+
+/**
+ * Envía el código de verificación y la nueva contraseña al backend.
+ * @param {string} email El correo del usuario.
+ * @param {string} code El código de 6 dígitos recibido.
+ * @param {string} newPassword La nueva contraseña del usuario.
+ */
+export const resetPasswordWithCode = (email, code, newPassword) => {
+  return client.post('/api/users/reset-password', { email, code, newPassword });
+};

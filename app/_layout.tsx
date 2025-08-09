@@ -6,6 +6,7 @@ export default function RootLayout() {
     <CartProvider>
       <Stack>
         {/* La pantalla de índice ahora está oculta y se manejará con la redirección */}
+        <Stack.Screen name="forgot-password" options={{ title: 'Recuperar Contraseña' }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ title: '' }} />
         <Stack.Screen name="register" options={{ title: 'Se Parte de nuestra familia' }} />
