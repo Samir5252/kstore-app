@@ -48,3 +48,8 @@ export const forgotPasswordRequest = (email) => {
 export const resetPasswordWithCode = (email, code, newPassword) => {
   return client.post('/api/users/reset-password', { email, code, newPassword });
 };
+
+export const updateUserAddress = (data) => {
+  // Asegúrate de que la ruta '/users/profile' exista en tu backend y acepte un método PUT
+  return client.put('/api/users/me', data);
+};
