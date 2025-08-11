@@ -13,8 +13,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 // --- Iconos y Componentes ---
-const PlusIcon = ({ color = 'white' }) => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 5v14M5 12h14"></Path></Svg>;
-const MinusIcon = ({ color = 'white' }) => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M5 12h14"></Path></Svg>;
+const PlusIcon = ({ color = '#333' }) => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M12 5v14M5 12h14"></Path></Svg>;
+const MinusIcon = ({ color = '#333' }) => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Path d="M5 12h14"></Path></Svg>;
 const CartIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></Path><Path d="M3 6h18"></Path><Path d="M16 10a4 4 0 0 1-8 0"></Path></Svg>;
 const SuccessIcon = () => <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></Path><Path d="M22 4L12 14.01l-3-3"></Path></Svg>;
 const ChevronDown = () => <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M6 9l6 6 6-6"></Path></Svg>;
@@ -35,19 +35,15 @@ const CustomAlert = ({ visible, message, type, onHide }) => {
     return (<Animated.View style={[styles.alertContainer, { opacity: fadeAnim, backgroundColor }]}><Icon /><Text style={styles.alertText}>{message}</Text></Animated.View>);
 };
 
-// ▼▼▼ COMPONENTE DetailRow CORREGIDO Y MÁS ROBUSTO ▼▼▼
 const DetailRow = ({ label, value }) => {
     const renderValue = () => {
-        // Si el valor ya es un componente (como el texto de color), lo renderizamos directamente.
         if (React.isValidElement(value)) {
             return value;
         }
-        // Si el valor es un objeto (lo que causa el error), no lo renderizamos para evitar el crash.
         if (typeof value === 'object' && value !== null) {
             console.warn(`Se intentó renderizar un objeto en DetailRow para la etiqueta: ${label}`);
             return <Text style={styles.detailValue}>Dato no disponible</Text>;
         }
-        // Si es texto o número, lo renderizamos normalmente.
         return <Text style={styles.detailValue}>{value}</Text>;
     };
 
@@ -98,26 +94,31 @@ export default function ProductDetailScreen() {
             fetchCart();
         } catch (error) {
             console.error("Error al añadir al carrito:", error);
-            showAlert(error.message || "No se pudo agregar el producto.", 'error');
+            showAlert(error.response?.data?.message || "No se pudo agregar el producto.", 'error');
         }
     };
 
-    if (loading) return <View style={styles.centered}><ActivityIndicator size="large" /></View>;
+    if (loading) return <View style={styles.centered}><ActivityIndicator size="large" color="#C3B1E1" /></View>;
     if (!product) return <View style={styles.centered}><Text>Producto no encontrado.</Text></View>;
 
     const hasDiscount = product.originalPrice && product.originalPrice > product.price;
     const isAvailable = product.active && product.stock > 0;
-    const stockColor = product.stock > 10 ? '#4CAF50' : '#FFA500';
+    const stockColor = product.stock > 10 ? '#4CAF50' : (product.stock > 0 ? '#FFA500' : '#FF6B6B');
+    const discountPercentage = hasDiscount ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <CustomAlert visible={alert.visible} message={alert.message} type={alert.type} onHide={() => setAlert({ ...alert, visible: false })} />
-            <Stack.Screen options={{ title: product.name }} />
+            <Stack.Screen options={{ title: product.name, headerTitleStyle: { color: '#333' }, headerStyle: { backgroundColor: '#F8F7FA' } }} />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <View style={styles.imageCard}>
+                <View style={styles.imageContainer}>
+                    <Image 
+                        source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${product.imageUrl}` }} 
+                        style={styles.productImage} 
+                    />
                     {hasDiscount && (
                         <View style={styles.discountBadge}>
-                            <Text style={styles.badgeText}>-{product.discountPercentage}%</Text>
+                            <Text style={styles.badgeText}>{discountPercentage}% OFF</Text>
                         </View>
                     )}
                     {product.prevent && (
@@ -125,32 +126,27 @@ export default function ProductDetailScreen() {
                             <Text style={styles.badgeText}>PREVENTA</Text>
                         </View>
                     )}
-                    <Image 
-                        source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${product.imageUrl}` }} 
-                        style={styles.productImage} 
-                    />
                 </View>
                 
-                <View style={styles.detailsCard}>
+                <View style={styles.detailsContainer}>
                     <Text style={styles.productName}>{product.name}</Text>
                     <View style={styles.priceContainer}>
                         <Text style={styles.productPrice}>${product.price.toFixed(2)}</Text>
                         {hasDiscount && <Text style={styles.originalPrice}>${product.originalPrice.toFixed(2)}</Text>}
                     </View>
-                    <View style={styles.separator} />
-                    <Text style={styles.descriptionTitle}>Descripción</Text>
                     <Text style={styles.description}>{product.description}</Text>
+                    
                     <View style={styles.separator} />
 
                     <TouchableOpacity style={styles.detailsToggle} onPress={toggleDetails}>
-                        <Text style={styles.descriptionTitle}>Detalles del Producto</Text>
+                        <Text style={styles.detailsTitle}>Detalles del Producto</Text>
                         <Animated.View style={{ transform: [{ rotate: detailsExpanded ? '180deg' : '0deg' }] }}>
                             <ChevronDown />
                         </Animated.View>
                     </TouchableOpacity>
 
                     {detailsExpanded && (
-                        <View>
+                        <View style={styles.detailsContent}>
                             <DetailRow label="Artista" value={product.artist?.name || 'N/A'} />
                             <DetailRow label="Categoría" value={product.category?.name || 'N/A'} />
                             <DetailRow label="SKU" value={product.sku || 'N/A'} />
@@ -174,13 +170,13 @@ export default function ProductDetailScreen() {
                                 <PlusIcon />
                             </TouchableOpacity>
                         </View>
-                        <TouchableOpacity onPress={handleAddToCart}>
+                        <TouchableOpacity onPress={handleAddToCart} style={styles.addToCartButtonContainer}>
                             <LinearGradient
                                 colors={['#D0B3E5', '#C3B1E1']}
                                 style={styles.addToCartButton}
                             >
                                 <CartIcon />
-                                <Text style={styles.addToCartButtonText}>Agregar al Carrito</Text>
+                                <Text style={styles.addToCartButtonText}>Agregar</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </>
@@ -195,35 +191,40 @@ export default function ProductDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#F7F8FA', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    safeArea: { flex: 1, backgroundColor: '#F8F7FA' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F7FA' },
     scrollContainer: { paddingBottom: 120 },
-    imageCard: {
-        margin: 15,
-        backgroundColor: 'white',
-        borderRadius: 20,
+    imageContainer: {
         padding: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
+        backgroundColor: 'white',
+        margin: 15,
+        borderRadius: 25,
+        shadowColor: "#C3B1E1",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+        elevation: 10,
     },
     productImage: { 
         width: '100%', 
-        height: 350, 
-        resizeMode: 'contain',
-        borderRadius: 15,
+        aspectRatio: 1,
+        resizeMode: 'cover',
+        borderRadius: 20,
     },
     discountBadge: { 
         position: 'absolute', 
         top: 20, 
         left: 20, 
         backgroundColor: '#FF6B6B', 
-        paddingHorizontal: 10, 
-        paddingVertical: 5, 
+        paddingHorizontal: 12, 
+        paddingVertical: 6, 
         borderRadius: 15,
         zIndex: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
     },
     preorderBadge: {
         backgroundColor: '#8E44AD',
@@ -231,64 +232,71 @@ const styles = StyleSheet.create({
         right: 20,
     },
     badgeText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
-    detailsCard: { 
-        padding: 25,
-        backgroundColor: 'white',
-        marginHorizontal: 15,
-        borderRadius: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
+    detailsContainer: { 
+        paddingHorizontal: 25,
+        paddingTop: 10,
     },
-    productName: { fontSize: 26, fontWeight: 'bold', marginBottom: 8 },
-    priceContainer: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 20 },
-    productPrice: { fontSize: 28, fontWeight: 'bold', color: '#333' },
-    originalPrice: { fontSize: 18, color: '#999', textDecorationLine: 'line-through', marginLeft: 12, marginBottom: 2 },
-    separator: { height: 1, backgroundColor: '#F0F0F0', marginVertical: 15 },
-    descriptionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
-    description: { fontSize: 16, color: '#666', lineHeight: 24 },
-    detailsToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F5F5F5' },
-    detailLabel: { fontSize: 16, color: '#888' },
-    detailValue: { fontSize: 16, fontWeight: '500' },
+    productName: { fontSize: 32, fontWeight: 'bold', color: '#1D1D1F', marginBottom: 8 },
+    priceContainer: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 15 },
+    productPrice: { fontSize: 34, fontWeight: 'bold', color: '#1D1D1F' },
+    originalPrice: { fontSize: 22, color: '#999', textDecorationLine: 'line-through', marginLeft: 12 },
+    description: { fontSize: 16, color: '#6E6E73', lineHeight: 24 },
+    separator: { height: 1, backgroundColor: '#F0EEF2', marginVertical: 20 },
+    detailsToggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
+    detailsTitle: { fontSize: 18, fontWeight: '600', color: '#1D1D1F' },
+    detailsContent: { marginTop: 10 },
+    detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#F0EEF2' },
+    detailLabel: { fontSize: 16, color: '#6E6E73' },
+    detailValue: { fontSize: 16, fontWeight: '600', color: '#1D1D1F' },
     
     footer: {
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: 20,
-        backgroundColor: 'white',
-        borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
+        bottom: 15,
+        left: 15,
+        right: 15,
+        padding: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderTopWidth: 0,
+        borderRadius: 35,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 15,
     },
     quantitySelector: { 
         flexDirection: 'row', 
         alignItems: 'center', 
-        backgroundColor: '#E6E6FA', // Lila
-        borderRadius: 30,
+        backgroundColor: '#F5F3F7',
+        borderRadius: 25,
     },
     quantityButton: { padding: 12 },
-    quantityText: { fontSize: 18, fontWeight: 'bold', marginHorizontal: 18, color: 'white' },
+    quantityText: { fontSize: 18, fontWeight: 'bold', marginHorizontal: 18, color: '#1D1D1F' },
+    addToCartButtonContainer: {
+        flex: 1,
+        marginLeft: 10,
+    },
     addToCartButton: { 
         paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderRadius: 30, 
+        borderRadius: 25, 
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
+        shadowColor: "#C3B1E1",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 6,
     },
     addToCartButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
     notAvailableContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 15,
+        padding: 18,
         backgroundColor: '#8E44AD',
         borderRadius: 30,
     },

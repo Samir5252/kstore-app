@@ -10,7 +10,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 // --- Iconos ---
 const FilterIcon = () => <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"></Path></Svg>;
 const SearchIcon = () => <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"></Path><Path d="M21 21l-4.35-4.35"></Path></Svg>;
-const MinimalCartIcon = () => <Svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C8A2C8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Circle cx="9" cy="21" r="1"></Circle><Circle cx="20" cy="21" r="1"></Circle><Path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></Path></Svg>;
+const MinimalCartIcon = ({ color = '#C8A2C8' }) => <Svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><Circle cx="9" cy="21" r="1"></Circle><Circle cx="20" cy="21" r="1"></Circle><Path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></Path></Svg>;
 const SuccessIcon = () => <Svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></Path><Path d="M22 4L12 14.01l-3-3"></Path></Svg>;
 
 // --- Componentes de UI Reutilizables ---
@@ -46,17 +46,34 @@ const PromoBanner = () => (
 
 const ProductCard = ({ item, onAddToCart }) => {
     const hasDiscount = item.originalPrice && item.originalPrice > item.price;
-    
-    const handlePress = (e) => {
+    const isAvailable = item.active && item.stock > 0;
+
+    const handleAddToCartPress = (e) => {
         e.stopPropagation(); // Evita que el Link se active al presionar el botón
-        onAddToCart(item._id);
+        if (isAvailable) {
+            onAddToCart(item._id);
+        }
     };
 
     return (
         <Link href={`/product/${item._id}`} asChild>
-            <TouchableOpacity style={styles.productCard}>
-                <Image source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.imageUrl}` }} style={styles.productImage}/>
-                {hasDiscount && (<View style={styles.discountBadge}><Text style={styles.discountText}>-{item.discountPercentage}%</Text></View>)}
+            <TouchableOpacity style={styles.productCard} activeOpacity={0.8}>
+                <View style={styles.imageWrapper}>
+                    <Image 
+                        source={{ uri: `https://res.cloudinary.com/dhwaeyuyp/image/upload/${item.imageUrl}` }} 
+                        style={styles.productImage}
+                    />
+                    {!isAvailable && (
+                        <View style={styles.notAvailableOverlay}>
+                            <Text style={styles.notAvailableOverlayText}>AGOTADO</Text>
+                        </View>
+                    )}
+                </View>
+                {hasDiscount && (
+                    <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>-{item.discountPercentage}%</Text>
+                    </View>
+                )}
                 <View style={styles.productInfo}>
                     <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
                     <View style={styles.footerContainer}>
@@ -64,8 +81,12 @@ const ProductCard = ({ item, onAddToCart }) => {
                             <Text style={styles.productPrice}>${item.price.toFixed(2)}</Text>
                             {hasDiscount && <Text style={styles.originalPrice}>${item.originalPrice.toFixed(2)}</Text>}
                         </View>
-                        <TouchableOpacity style={styles.addToCartButton} onPress={handlePress}>
-                            <MinimalCartIcon />
+                        <TouchableOpacity 
+                            style={[styles.addToCartButton, !isAvailable && styles.disabledCartButton]} 
+                            onPress={handleAddToCartPress}
+                            disabled={!isAvailable}
+                        >
+                            <MinimalCartIcon color={isAvailable ? '#C8A2C8' : '#BDBDBD'} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -258,9 +279,28 @@ const styles = StyleSheet.create({
   bannerTitle: { color: 'white', fontSize: 24, fontWeight: 'bold' },
   bannerSubtitle: { color: 'white', fontSize: 16, marginTop: 5 },
 
-  productCard: { flex: 1, margin: 5, backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#F0F0F0' },
+  productCard: { flex: 1, margin: 5, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#F0F0F0' },
+  imageWrapper: { borderRadius: 12, overflow: 'hidden' },
   productImage: { width: '100%', height: 180, resizeMode: 'cover' },
-  discountBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#FF6B6B', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  notAvailableOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notAvailableOverlayText: {
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: 20,
+      textTransform: 'uppercase',
+      borderWidth: 2,
+      borderColor: 'rgba(255, 255, 255, 0.8)',
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+      borderRadius: 10,
+      transform: [{ rotate: '-10deg' }]
+  },
+  discountBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: '#FF6B6B', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, zIndex: 1 },
   discountText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
   productInfo: { padding: 12 },
   productName: { fontSize: 14, fontWeight: '600', marginBottom: 5, height: 35 },
@@ -268,7 +308,10 @@ const styles = StyleSheet.create({
   priceContainer: { flex: 1 },
   productPrice: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   originalPrice: { fontSize: 12, color: '#999', textDecorationLine: 'line-through' },
-  addToCartButton: { padding: 8, borderRadius: 20 },
+  addToCartButton: { padding: 8, borderRadius: 20, backgroundColor: '#F5F3F7' },
+  disabledCartButton: {
+    backgroundColor: '#F5F5F5'
+  },
 
   loadMoreButton: { margin: 15, padding: 15, backgroundColor: '#f0f0f0', borderRadius: 8, alignItems: 'center' },
   loadMoreButtonText: { fontSize: 16, fontWeight: 'bold' },
